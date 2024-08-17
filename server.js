@@ -5,7 +5,14 @@ import http from "http";
 import { Server } from "socket.io";
 import { checkwinerUser } from "./GameHelper/wingoresult.js";
 
-const port = 4000;
+ 
+
+process.on('uncaughtException', (err) => {
+    console.error(`Error: ${err.message}`);
+    console.error(err.stack);
+    console.error('Shutting down the Server due to Unhandled Promise Rejection');
+    process.exit(1);
+});
 
 // Config
 if (process.env.NODE_ENV !== "PRODUCTION") {
@@ -158,6 +165,18 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(port, () => {
-  console.log(`Server is working on http://localhost:${port}`);
+ 
+server.listen(process.env.PORT, () => {
+    console.log(`Server is working on http://localhost:${process.env.PORT}`);
+});
+
+// Unhandled Promise Rejections
+process.on('unhandledRejection', (err) => {
+    console.error(`Error: ${err.message}`);
+    console.error(err.stack);
+    console.error('Shutting down the server due to Unhandled Promise Rejection');
+
+    server.close(() => {
+        process.exit(1);
+    });
 });
