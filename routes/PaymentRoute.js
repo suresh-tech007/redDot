@@ -45,7 +45,7 @@ router.get("/getUpiDetails", isAuthenicatedUser, getUpiDetails);
 
 // THIS IS ONLY FOR ADMINS ROUTE -->
 router.post("/admin/allwithdrawrequest", isAuthenicatedUser,authorizeRoles("admin"), usersAllwithdrawRequest);
-router.get("/admin/Upifordeposit", isAuthenicatedUser,authorizeRoles("admin"), Upifordeposit);
+router.post("/admin/Upifordeposit", isAuthenicatedUser,authorizeRoles("admin"), Upifordeposit);
  
 
 export default router;

@@ -94,7 +94,7 @@ export const requsetfordeposit = catcherrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "request is submited , please check amount after some time ",
-    depositreqvest,
+    // depositreqvest,
   });
 });
 
@@ -105,7 +105,8 @@ export const alluserrequsetfordeposit = catcherrors(async (req, res, next) => {
     return next(new errorHandler("Enter valid values ", 400));
   }
 
-  const deposithistory = await Depositreq.find({ user: user_id });
+  const deposithistores = await Depositreq.find({ user: user_id });
+  const deposithistory = deposithistores.reverse();
   if (!deposithistory) {
     return next(new errorHandler("Deposit Transactoin not found ", 400));
   }
@@ -247,9 +248,15 @@ export const withdrawRequest = catcherrors(async (req, res, next) => {
   let { way, upiId, bankdetails, transationId, amount, walletID } = req.body;
   const user_id = req.user._id;
 
+  
+
   if (!way || !amount || !transationId) {
     return next(new errorHandler("Enter valid values", 400));
   }
+  if ( amount <110) {
+    return next(new errorHandler("Enter valid values", 400));
+  }
+
   if (!bankdetails && !upiId && !walletID) {
     return next(new errorHandler("Enter valid values", 400));
   }
@@ -334,7 +341,9 @@ export const userAllwithdrawRequest = catcherrors(async (req, res, next) => {
     return next(new errorHandler("Enter valid values ", 400));
   }
 
-  const withdrawhistory = await Withdrawreq.find({ user_id });
+  const withdrawhistorys = await Withdrawreq.find({ user_id });
+
+  const withdrawhistory = withdrawhistorys.reverse();
 
   if (!withdrawhistory) {
     return next(new errorHandler("Withdraw Transactoin not found ", 400));
@@ -357,14 +366,16 @@ export const walletbalance = catcherrors(async (req, res, next) => {
   }
   res.status(200).json({
     success: true,
-    wallet,
+    withdrawableBalance:wallet.withdrawableBalance,
+    depositBalance:wallet.depositBalance,
   });
 });
 
 // ALL WITHDRAW TRANSACTION BY USERS(ADMIN) -->
 export const usersAllwithdrawRequest = catcherrors(async (req, res, next) => {
-  const allwithdrawtransaction = await Withdrawreq.find();
-
+  const allwithdrawtransactions = await Withdrawreq.find(); 
+  
+  const allwithdrawtransaction = allwithdrawtransactions.reverse();
   if (!allwithdrawtransaction) {
     return next(new errorHandler("Withdraw Transactoin not found ", 400));
   }

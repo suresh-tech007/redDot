@@ -93,18 +93,7 @@ export const userbet =catcherrors(async (req, res, next) => {
 
 
  
-// export const getresults = catcherrors(async (req, res, next) => {
-//     const gameresulthistory = await WingoResult.find(); // Added await to resolve the Promise
-
-//     if (!gameresulthistory  ) {
-//         return next(new errorHandler('Results not found!', 400));
-//     }
-
-//     res.status(200).json({
-//         success: true,
-//         gameresulthistory
-//     });
-// });
+ 
 export const getresults = catcherrors(async (req, res, next) => {
     // Sabse pehle, game result history ko database se fetch karte hain
     const gameresulthistory = await WingoResult.find();
