@@ -5,8 +5,6 @@ import http from "http";
 import { Server } from "socket.io";
 import { checkwinerUser } from "./GameHelper/wingoresult.js";
 
- 
-
 process.on('uncaughtException', (err) => {
     console.error(`Error: ${err.message}`);
     console.error(err.stack);
@@ -49,6 +47,16 @@ const bets = {
   "5Min": [],
   "10Min": [],
 };
+const generateGameID = () => {
+  return Math.floor(10000000000000 + Math.random() * 90000000000000).toString();
+};
+
+let gameIDs = {
+  "1Min": generateGameID(),
+  "3Min": generateGameID(),
+  "5Min": generateGameID(),
+  "10Min": generateGameID(),
+};
 
 const startTimers = () => {
   Object.keys(timers).forEach((key) => {
@@ -61,7 +69,9 @@ const startTimers = () => {
           finalizeBets(key);
         }
       } else {
-        timers[key] = parseInt(key) * 60; // Reset timer
+        timers[key] = parseInt(key) * 60;
+        gameIDs[key] = generateGameID();  
+        io.emit("gameID", gameIDs); // Broadcast the new game ID
       }
       io.emit("countdown", { type: key, value: timers[key] });
     }, 1000);
@@ -93,7 +103,6 @@ const finalizeBets = (timerType) => {
   const values = Object.values(numberCounts);
   const allEqual = values.every((value) => value === values[0]);
 
-  // If all values are the same, generate a random number between 0 and 9
   const { GameId, GameName } = bets[timerType][0];
 
   const resultdata = {
@@ -101,47 +110,38 @@ const finalizeBets = (timerType) => {
     Game_id: GameId,
     GameName,
     selectedNumber: allEqual
-      ? Math.floor(Math.random() * 10) // Random number if all counts are equal
-      : findLeastSelectedNumber(numberCounts), // Least selected number otherwise
+      ? Math.floor(Math.random() * 10)
+      : findLeastSelectedNumber(numberCounts),
   };
 
-  // Check the winner and reset the bets for the timer
   checkwinerUser(resultdata, bets);
   bets[timerType] = [];
 };
-const findLeastSelectedNumber = (numberCounts) => {
-    return Object.entries(numberCounts).reduce(
-      (leastSelected, [num, count]) =>
-        leastSelected === null || count < numberCounts[leastSelected]
-          ? num
-          : leastSelected,
-      null
-    );
-  };
 
-startTimers();
-const generateGameID = () => {
-  return Math.floor(10000000000000 + Math.random() * 90000000000000).toString();
+const findLeastSelectedNumber = (numberCounts) => {
+  return Object.entries(numberCounts).reduce(
+    (leastSelected, [num, count]) =>
+      leastSelected === null || count < numberCounts[leastSelected]
+        ? num
+        : leastSelected,
+    null
+  );
 };
 
+
+
+startTimers();
+
 io.on("connection", (socket) => {
-  let gameIDs = {
-    "1Min": generateGameID(),
-    "3Min": generateGameID(),
-    "5Min": generateGameID(),
-    "10Min": generateGameID(),
-  };
-
-  // Broadcast the initial game IDs
   socket.emit("gameID", gameIDs);
-
-  // Handle countdown reaching 0 and resetting the game ID
-  socket.on("timerEnded", (timerType) => {
-    gameIDs[timerType] = generateGameID();
-    io.emit("gameID", gameIDs); // Broadcast the new game ID to all clients
+  
+  socket.on("requestGameIDs", () => {
+    // Jab request aati hai, tab server current gameIDs ko emit karta hai
+    socket.emit("gameID", gameIDs);
   });
+  // Broadcast the current game IDs when a new user connects
+  
 
-  // Receive bet data from the client
   socket.on("placeBet", (betData) => {
     if (bets[betData.selectedTimer]) {
       bets[betData.selectedTimer].push(betData);
@@ -161,22 +161,20 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("disconnect", () => {
-  });
+  socket.on("disconnect", () => {});
 });
 
- 
 server.listen(process.env.PORT, () => {
-    console.log(`Server is working on http://localhost:${process.env.PORT}`);
+  console.log(`Server is working on http://localhost:${process.env.PORT}`);
 });
 
 // Unhandled Promise Rejections
 process.on('unhandledRejection', (err) => {
-    console.error(`Error: ${err.message}`);
-    console.error(err.stack);
-    console.error('Shutting down the server due to Unhandled Promise Rejection');
+  console.error(`Error: ${err.message}`);
+  console.error(err.stack);
+  console.error('Shutting down the server due to Unhandled Promise Rejection');
 
-    server.close(() => {
-        process.exit(1);
-    });
+  server.close(() => {
+    process.exit(1);
+  });
 });

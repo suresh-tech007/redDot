@@ -5,6 +5,63 @@ import User from "../modules/userModel.js";
 import Bankdetails from "../modules/Bankdetails.js";
 import Withdrawreq from "../modules/Withdrawrequest.js";
 import { Wallet } from "../modules/Wallet.js";
+import UpdateUpiId from "../modules/payment/addupi.js";
+
+// CREATE PAYMENT GATWAY DETAILS ==>
+export const Upifordeposit = catcherrors(async (req, res, next) => {
+  const { upiId, walletId } = req.body;
+  const user = req.user;
+
+   
+  if (user.role !== "admin") {
+    return next(new errorHandler("Unauthorized", 405));
+  }
+
+   
+  if (!upiId || !walletId) {
+    return next(new errorHandler("Please enter valid values", 405));
+  }
+
+   
+  let UpiIdupdate = await UpdateUpiId.findOne({ user: user._id });
+
+  if (UpiIdupdate) {
+     
+    UpiIdupdate.upiId = upiId;
+    UpiIdupdate.walletId = walletId;
+  } else {
+     
+    UpiIdupdate = new UpdateUpiId({ upiId, walletId, user: user._id });
+  }
+
+  
+  await UpiIdupdate.save();
+
+  res.status(200).json({
+    success: true,
+    message: "UPI ID updated/created successfully",
+    UpiIdupdate,
+  });
+});
+
+// 
+export const getUpiDetails = catcherrors(async (req, res, next) => {
+   
+  const UpiDetails = await UpdateUpiId.findOne();
+
+  // If no record is found, return an error
+  if (!UpiDetails) {
+      return next(new errorHandler("No UPI ID found for this walletId", 404));
+  }
+
+  // Send the UPI details to the frontend
+  res.status(200).json({
+      success: true,
+      UpiDetails
+  });
+
+});
+
 
 // USER REQUEST FOR DEPOSIT -->
 export const requsetfordeposit = catcherrors(async (req, res, next) => {
@@ -43,7 +100,7 @@ export const requsetfordeposit = catcherrors(async (req, res, next) => {
 
 // ALL USER REQUESTS FOR DEPOSIT -->
 export const alluserrequsetfordeposit = catcherrors(async (req, res, next) => {
-  const  user_id  = req.user._id;
+  const user_id = req.user._id;
   if (!user_id) {
     return next(new errorHandler("Enter valid values ", 400));
   }
@@ -84,7 +141,7 @@ export const addmoneyiswallet = catcherrors(async (req, res, next) => {
     return next(new errorHandler("Deposit Transactoin not found ", 400));
   }
   const _id = depositreqvest.user;
-  const amount = depositreqvest.amount
+  const amount = depositreqvest.amount;
 
   const user = await User.findOne({ _id });
   if (!user) {
@@ -95,7 +152,7 @@ export const addmoneyiswallet = catcherrors(async (req, res, next) => {
       { user_id: _id },
       { $inc: { depositBalance: +amount } },
       { new: true }
-  );
+    );
 
     res.status(200).json({
       success: true,
@@ -172,8 +229,9 @@ export const getbankdetails = catcherrors(async (req, res, next) => {
   const bankdetails = await Bankdetails.findOne({ user });
 
   if (!bankdetails) {
-   return  res.status(200).json({
-      success: true,    
+    return res.status(200).json({
+      success: true,
+      bankdetails:null
     });
   }
 
@@ -188,7 +246,6 @@ export const getbankdetails = catcherrors(async (req, res, next) => {
 export const withdrawRequest = catcherrors(async (req, res, next) => {
   let { way, upiId, bankdetails, transationId, amount, walletID } = req.body;
   const user_id = req.user._id;
-   
 
   if (!way || !amount || !transationId) {
     return next(new errorHandler("Enter valid values", 400));
@@ -240,8 +297,8 @@ export const withdrawRequest = catcherrors(async (req, res, next) => {
     { new: true }
   );
 
-  amount = (amount / 100) * 90; 
-  amount = amount.toFixed(2)
+  amount = (amount / 100) * 90;
+  amount = amount.toFixed(2);
 
   const withdrawRequest = await Withdrawreq.create({
     amount,
@@ -277,7 +334,7 @@ export const userAllwithdrawRequest = catcherrors(async (req, res, next) => {
     return next(new errorHandler("Enter valid values ", 400));
   }
 
-  const withdrawhistory = await Withdrawreq.find({  user_id });
+  const withdrawhistory = await Withdrawreq.find({ user_id });
 
   if (!withdrawhistory) {
     return next(new errorHandler("Withdraw Transactoin not found ", 400));
@@ -289,29 +346,20 @@ export const userAllwithdrawRequest = catcherrors(async (req, res, next) => {
   });
 });
 
-
-
 // CHECK WALLET BALANCE ==>
 export const walletbalance = catcherrors(async (req, res, next) => {
-
- const  user_id = req.user._id;
-  
+  const user_id = req.user._id;
 
   const wallet = await Wallet.findOne({ user_id });
 
   if (!wallet) {
-      throw new Error('Wallet not found');
+    throw new Error("Wallet not found");
   }
   res.status(200).json({
     success: true,
     wallet,
   });
-
-
-
-})
-
-
+});
 
 // ALL WITHDRAW TRANSACTION BY USERS(ADMIN) -->
 export const usersAllwithdrawRequest = catcherrors(async (req, res, next) => {
@@ -327,7 +375,6 @@ export const usersAllwithdrawRequest = catcherrors(async (req, res, next) => {
   });
 });
 
-
 // TRANSACTION HISTORY -->
 export const userTransactionHistory = catcherrors(async (req, res, next) => {
   const user_id = req.user._id;
@@ -337,29 +384,26 @@ export const userTransactionHistory = catcherrors(async (req, res, next) => {
   }
 
   // Fetch Deposit History and add 'task' field
-  const depositHistory = (await Depositreq.find({ user: user_id })).map(transaction => ({
-    ...transaction.toObject(),
-    task: 'deposit'
-  }));
-  
-   
+  const depositHistory = (await Depositreq.find({ user: user_id })).map(
+    (transaction) => ({
+      ...transaction.toObject(),
+      task: "deposit",
+    })
+  );
+
   // Fetch Withdrawal History and add 'task' field
-  const withdrawHistory = (await Withdrawreq.find({  user_id })).map(transaction => ({
-    ...transaction.toObject(),
-    task: 'withdraw'
-  }));
- 
-
-
-   
+  const withdrawHistory = (await Withdrawreq.find({ user_id })).map(
+    (transaction) => ({
+      ...transaction.toObject(),
+      task: "withdraw",
+    })
+  );
 
   // Merge both histories into one array
   const combinedHistory = [...depositHistory, ...withdrawHistory];
 
   // Optionally, you can sort the combined array by date
   combinedHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-  
 
   if (!combinedHistory.length) {
     return next(new errorHandler("No transactions found", 404));
@@ -370,4 +414,3 @@ export const userTransactionHistory = catcherrors(async (req, res, next) => {
     transactions: combinedHistory,
   });
 });
-

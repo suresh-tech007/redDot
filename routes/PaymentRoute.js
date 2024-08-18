@@ -6,7 +6,9 @@ import {
   allrequsetfordeposit,
   alluserrequsetfordeposit,
   getbankdetails,
+  getUpiDetails,
   requsetfordeposit,
+  Upifordeposit,
   userAllwithdrawRequest,
   usersAllwithdrawRequest,
   userTransactionHistory,
@@ -33,13 +35,17 @@ router.get("/getBankdetails", isAuthenicatedUser, getbankdetails);
 router.post("/withdrawRequest", isAuthenicatedUser, withdrawRequest);
 router.get("/withdrawHistory", isAuthenicatedUser, userAllwithdrawRequest);
 // WITHDRAW REQUEST FOR ADMIN
-router.post("/allwithdrawrequest", isAuthenicatedUser,authorizeRoles("admin"), usersAllwithdrawRequest);
 
 
 
 router.get("/walletbalance", isAuthenicatedUser, walletbalance);
 
 router.get("/userTransactionHistory", isAuthenicatedUser, userTransactionHistory);
+router.get("/getUpiDetails", isAuthenicatedUser, getUpiDetails);
+
+// THIS IS ONLY FOR ADMINS ROUTE -->
+router.post("/admin/allwithdrawrequest", isAuthenicatedUser,authorizeRoles("admin"), usersAllwithdrawRequest);
+router.get("/admin/Upifordeposit", isAuthenicatedUser,authorizeRoles("admin"), Upifordeposit);
  
 
 export default router;
