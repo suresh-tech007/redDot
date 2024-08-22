@@ -1,4 +1,4 @@
-const sendToken = (user, rememberMe="false", statusCode, res) => {
+const sendToken = (user, rememberMe = false, statusCode, res) => {
   const token = user.getJwtToken();
 
   // Calculate the cookie expiration time based on the rememberMe flag
@@ -10,8 +10,8 @@ const sendToken = (user, rememberMe="false", statusCode, res) => {
   const options = {
     expires: new Date(Date.now() + cookieExpireTime),
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+    // secure: process.env.NODE_ENV === 'production',
+    // sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
   };
 
   res

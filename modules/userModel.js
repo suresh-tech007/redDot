@@ -40,13 +40,19 @@ const userSchema= new mongoose.Schema({
         unique:true,
 
     },
+    referCode:{
+        type:String,
+        required:true, 
+        unique:true,
+
+    },
+    invitationCode:{
+        type:String,
+        default:"4D5F7B9CD1"
+    },
     avatar:{
-         
-            
                 type:String,
                 required:true,
-            
-        
     },
     role:{
         type:String,
@@ -57,6 +63,7 @@ const userSchema= new mongoose.Schema({
         type:Date,
         default:Date.now
     },
+
 
     resetPasswordToken: String,
     resetPasswordExpire:Date

@@ -28,6 +28,7 @@ const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173", // Your Vite frontend URL
     methods: ["GET", "POST"],
+    credentials: true, 
   },
 });
 
@@ -59,17 +60,19 @@ let gameIDs = {
 };
 
 const startTimers = () => {
+  console.log("ok")
   Object.keys(timers).forEach((key) => {
     intervals[key] = setInterval(() => {
       if (timers[key] > 0) {
         timers[key]--;
 
         if (timers[key] <= 5) {
-          // Finalize bets automatically when 5 seconds or less remain for this specific timer
+          
           finalizeBets(key);
         }
       } else {
         timers[key] = parseInt(key) * 60;
+       
         gameIDs[key] = generateGameID();
         io.emit("gameID", gameIDs); // Broadcast the new game ID
       }
@@ -78,57 +81,7 @@ const startTimers = () => {
   });
 };
 
-// const finalizeBets = (timerType) => {
-//   if (bets[timerType].length === 0) {
-//     return;
-//   }
-
-//   const allNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-//   const numberCounts = {};
-
-//   allNumbers.forEach((num) => {
-//     numberCounts[num] = 0;
-//   });
-
-//   bets[timerType].forEach((bet) => {
-//     if (Array.isArray(bet.selectednum)) {
-//       bet.selectednum.forEach((num) => {
-//         numberCounts[num]++;
-//       });
-//     } else {
-//       numberCounts[bet.selectednum]++;
-//     }
-//   });
-//   console.log(numberCounts)
-
-//   const values = Object.values(numberCounts);
-//   const allEqual = values.every((value) => value === values[0]);
-
-//   const { GameId, GameName } = bets[timerType][0];
-
-//   const resultdata = {
-//     timerType,
-//     Game_id: GameId,
-//     GameName,
-//     selectedNumber: allEqual
-//       ? Math.floor(Math.random() * 10)
-//       : findLeastSelectedNumber(numberCounts),
-//   };
-
-//   checkwinerUser(resultdata, bets);
-//   bets[timerType] = [];
-// };
-
-// const findLeastSelectedNumber = (numberCounts) => {
-//   return Object.entries(numberCounts).reduce(
-//     (leastSelected, [num, count]) =>
-//       leastSelected === null || count < numberCounts[leastSelected]
-//         ? num
-//         : leastSelected,
-//     null
-//   );
-// };
-
+ 
 const finalizeBets = (timerType) => {
   if (bets[timerType].length === 0) {
     return;
@@ -206,6 +159,7 @@ startTimers();
 
 io.on("connection", (socket) => {
   socket.emit("gameID", gameIDs);
+  
 
   socket.on("requestGameIDs", () => {
     // Jab request aati hai, tab server current gameIDs ko emit karta hai

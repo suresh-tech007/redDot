@@ -1,16 +1,38 @@
 import { errorHandler } from "../utils/ErrorHandler.js";
 import catcherrors from "../middleware/catchAsyncError.js";
 import User from "../modules/userModel.js";
- 
 import sendToken from "../utils/jwtToken.js";
 import crypto from "crypto";
 import cloudniry from "cloudinary";
 import { validationResult } from "express-validator";
-
 import { sendEmail } from "../utils/sendEmail.js";
 import Otp from "../modules/opt.js";
 import { oneMintex, threeMinex } from "../utils/otpValidate.js";
 import { Wallet } from "../modules/Wallet.js";
+import { InviteBonus } from "../modules/InviteBonus.js";
+ 
+ 
+async function generateUniqueReferCode(length = 8) {
+  let referCode;
+  let isUnique = false;
+
+  while (!isUnique) {
+    // Generate a random alphanumeric code
+    referCode = crypto.randomBytes(Math.ceil(length / 2))
+                      .toString('hex')
+                      .slice(0, length)
+                      .toUpperCase(); // Convert to uppercase for consistency
+
+    // Check if the refer code is unique
+    const existingUser = await User.findOne({ referCode });
+    if (!existingUser) {
+      isUnique = true; // If no user has this referCode, it's unique
+    }
+  }
+
+  return referCode;
+}
+
 
 function generateRandomUsername() {
   const randomString = crypto.randomBytes(2).toString("hex");
@@ -29,11 +51,15 @@ function generateUID(length = 8) {
 
   return uid;
 }
+function generateRandomFourDigit() {
+  return Math.floor(1000 + Math.random() * 9000);
+}
 
 export const registerUser = catcherrors(async (req, res, next) => {
-  const { phoneNum, password, inviteCode, confirmPassword } = req.body;
+  const { phoneNum,invitationCode, password, confirmPassword } = req.body;
    
-
+  
+ 
   // Validate phone number length and format
   const phoneNumPattern = /^[0-9]{10}$/;
   if (!phoneNumPattern.test(phoneNum)) {
@@ -47,7 +73,7 @@ export const registerUser = catcherrors(async (req, res, next) => {
     return next(new errorHandler("User already exists", 400));
   }
 
-  // Corrected password match validation
+   
   if (password !== confirmPassword) {
     return next(new errorHandler("Passwords do not match", 400));
   }
@@ -56,11 +82,10 @@ export const registerUser = catcherrors(async (req, res, next) => {
   const UID = generateUID();
   const avatar = `https://avatar.iran.liara.run/public/boy?username=${Username}`;
 
-  let balance = 0;
-  if (inviteCode == "suresh86899") {
-    balance = 20.0;
-  }
+   
  
+
+  let referCode =await generateUniqueReferCode(10)
 
   const user = await User.create({
     Username,
@@ -68,13 +93,42 @@ export const registerUser = catcherrors(async (req, res, next) => {
     phoneNum,
     password,
     avatar,
-  
-    inviteCode,
+    invitationCode,
+    referCode
   });
 
+  
+  const invitationCodeuser = await User.findOne({referCode:invitationCode})
+  if (invitationCodeuser) {
+    const user_id = invitationCodeuser._id;
+    
+    const wallet = await Wallet.findOneAndUpdate(
+      { user_id: user_id },       
+      { $inc: { depositBalance: 10 } },   
+      { new: true }              
+    );
+  
+    if (!wallet) {
+      new errorHandler("User not found !", 400)
+    
+    }
+
+    const BonusAmount = 10
+
+    const invivateBounes = await InviteBonus.create({
+      user_id:user_id,
+      newUser:user._id,
+      BonusAmount
+    })
+    if (!invivateBounes) {
+      new errorHandler("invivateBounes does  not found !", 400)
+    
+    }
+  }
+  
   const wallet = await Wallet.create({
     user_id:user._id,
-    depositBalance:balance
+    depositBalance:20
   
   })
 
@@ -215,9 +269,7 @@ const forgotPassowrd = catcherrors(async (req, res, next) => {
   }
 });
 
-function generateRandomFourDigit() {
-  return Math.floor(1000 + Math.random() * 9000);
-}
+
 
 export const sendOtp = catcherrors(async (req, res, next) => {
   const errors = validationResult(req);
@@ -430,16 +482,30 @@ const updateProfile = catcherrors(async (req, res) => {
 // Update User Role ==>
 
 const updateUserRole = catcherrors(async (req, res) => {
-  const { Username, email, role } = req.body;
-  const newUserDate = { Username, email, role };
-  await User.findByIdAndUpdate(req.params.id, newUserDate, {
+  
+  const _id = req.params.id
+ 
+  const {  role } = req.body;
+ 
+  const user = await User.findOne({_id});
+  if (!user) {
+    return next(
+      new errorHandler(`User does not exist with Id : ${req.params.id}`)
+    );
+  }
+
+  
+  const newUserDate = {  role };
+  await User.findByIdAndUpdate(_id, newUserDate, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
   });
   res.status(200).json({
     success: true,
+    message:"role is updated successfully"
   });
+
 });
 
 const deleteUSer = catcherrors(async (req, res, next) => {
@@ -477,17 +543,44 @@ const getAllusers = catcherrors(async (req, res, next) => {
 // Get single user (Admin)
 
 const getsingleuser = catcherrors(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const _id = req.params.id
+  
+  const user = await User.findById(_id);
 
   if (!user) {
     return next(
       new errorHandler(`User does not exist with Id : ${req.params.id}`)
     );
   }
+ 
+  const wallet = await Wallet.findOne({ user_id:_id});
+
+  if (!wallet) {
+    return next(
+      new errorHandler(`User does not exist with Id : ${req.params.id}`)
+    );
+  }
+  
+  
+  const userdetails = {
+    _id: user._id,
+    phoneNum: user.phoneNum,
+    Username: user.Username,
+    email: user.email,
+    UID: user.UID,
+    avatar: user.avatar,
+    role: user.role,
+    createdAt:user.createdAt,
+    wallet_id: wallet._id,
+    user_id:wallet.user_id,
+    depositBalance: wallet.depositBalance,
+    withdrawableBalance: wallet.withdrawableBalance,
+     
+  };
 
   res.status(200).json({
     success: true,
-    user,
+    userdetails,
   });
 });
 

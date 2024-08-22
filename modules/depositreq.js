@@ -38,6 +38,12 @@ const DipositreqvestSchema = new mongoose.Schema(
       required: true,
       default:"painding"
 
+    },
+    newUser:{
+      type: Boolean,
+      required: true,
+      default:false
+
     }
   },
   {
