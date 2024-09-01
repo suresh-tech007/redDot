@@ -16,8 +16,9 @@ const sendToken = (user, rememberMe = false, statusCode, res) => {
 
   res
     .status(statusCode)
-    .cookie("token", token, options)
+    // .cookie("token", token, options)
     .json({
+      token,
       success: true,
       user,
       token,

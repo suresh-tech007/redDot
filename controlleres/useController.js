@@ -157,7 +157,7 @@ export const loginUser = catcherrors(async (req, res, next) => {
     if (phoneNum === null) {
       user = await User.findOne({ email }).select("+password");
       if (!user) {
-        return next(new errorHandler("Invalid email and password", 401));
+        return next(new errorHandler("Invalid phone Number and password", 401));
       }
     } else if (phoneNum) {
       const phoneNumPattern = /^[0-9]{10}$/;
@@ -194,12 +194,13 @@ const logout = catcherrors(async (req, res, next) => {
   try {
     // Clear the token cookie
 
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      path: "/", // Match this to the path where the cookie was set
-    });
+    // res.clearCookie("token", {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    //   path: "/", // Match this to the path where the cookie was set
+    // });
+    localStorage.setItem("token",null)
 
     res.status(200).json({
       success: true,
@@ -401,7 +402,7 @@ const resetPassword = catcherrors(async (req, res, next) => {
 // GET USER DETAILES ==>
 
 const getuserDetails = catcherrors(async (req, res) => {
-  const user = await User.findById(req.user.id);
+  const user = req.user;
 
   res.status(200).json({
     success: true,
