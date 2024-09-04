@@ -4,11 +4,12 @@ import app from "./app.js";
 import http from "http";
 import { Server } from "socket.io";
 import { checkwinerUser } from "./GameHelper/wingoresult.js";
+import os from "os";
 
 process.on("uncaughtException", (err) => {
   console.error(`Error: ${err.message}`);
-  console.error(err.stack);
-  console.error("Shutting down the Server due to Unhandled Promise Rejection");
+  console.error(`Stack: ${err.stack}`);
+  console.error("Shutting down the Server due to Unhandled Exception");
   process.exit(1);
 });
 
@@ -26,11 +27,32 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Your Vite frontend URL
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
-    credentials: true, 
+    credentials: true,
   },
+  pingInterval: 10000, // Ping every 10 seconds to keep connection alive
+  pingTimeout: 5000,   // Close connection if no pong is received within 5 seconds
+  maxHttpBufferSize: 1e6, // Limit data to 1MB
 });
+
+// io.on("connection", (socket) => {
+//   console.log(`New socket connected: ${socket.id}`);
+
+//   // Handle events...
+
+//   socket.on("disconnect", (reason) => {
+//     console.log(`Socket disconnected: ${socket.id} - Reason: ${reason}`);
+//   });
+// });
+
+// Log system resource usage every 30 seconds
+// const logResourceUsage = () => {
+//   console.log(`Memory Usage: ${JSON.stringify(process.memoryUsage())}`);
+//   console.log(`CPU Usage: ${JSON.stringify(os.cpus())}`);
+//   console.log(`Load Average: ${os.loadavg()}`);
+// };
+// setInterval(logResourceUsage, 30000); // Log every 30 seconds
 
 // Game logic
 const timers = {
@@ -48,6 +70,7 @@ const bets = {
   "5Min": [],
   "10Min": [],
 };
+
 const generateGameID = () => {
   return Math.floor(10000000000000 + Math.random() * 90000000000000).toString();
 };
@@ -60,19 +83,17 @@ let gameIDs = {
 };
 
 const startTimers = () => {
-  console.log("ok")
+  console.log("Starting timers...");
   Object.keys(timers).forEach((key) => {
     intervals[key] = setInterval(() => {
       if (timers[key] > 0) {
         timers[key]--;
 
         if (timers[key] <= 5) {
-          
           finalizeBets(key);
         }
       } else {
         timers[key] = parseInt(key) * 60;
-       
         gameIDs[key] = generateGameID();
         io.emit("gameID", gameIDs); // Broadcast the new game ID
       }
@@ -81,9 +102,10 @@ const startTimers = () => {
   });
 };
 
- 
 const finalizeBets = (timerType) => {
+  // console.log(`Finalizing bets for timer: ${timerType}`);
   if (bets[timerType].length === 0) {
+    // console.log(`No bets to finalize for timer: ${timerType}`);
     return;
   }
 
@@ -141,6 +163,8 @@ const finalizeBets = (timerType) => {
     selectedNumber,
   };
 
+  // console.log(`Finalized result for ${timerType}:`, resultdata);
+
   checkwinerUser(resultdata, bets);
   bets[timerType] = [];
 };
@@ -158,35 +182,45 @@ const findLeastSelectedNumber = (numberCounts) => {
 startTimers();
 
 io.on("connection", (socket) => {
-  socket.emit("gameID", gameIDs);
+  console.log(`Client connected: ${socket.id}`);
+ 
   
+  socket.emit("gameID", gameIDs);
 
   socket.on("requestGameIDs", () => {
-    // Jab request aati hai, tab server current gameIDs ko emit karta hai
+    
     socket.emit("gameID", gameIDs);
   });
-  // Broadcast the current game IDs when a new user connects
 
   socket.on("placeBet", (betData) => {
+   
     if (bets[betData.selectedTimer]) {
       bets[betData.selectedTimer].push(betData);
     }
   });
 
   socket.on("finalizeBets", (timerType) => {
+    
     if (bets[timerType]) {
       finalizeBets(timerType);
     }
   });
 
   socket.on("sendMessage", (selectedTimer) => {
+ 
     socket.emit("countdown", {
       type: selectedTimer,
       value: timers[selectedTimer],
     });
   });
 
-  socket.on("disconnect", () => {});
+  socket.on("disconnect", () => {
+    console.log(`Client disconnected: ${socket.id}`); // Track disconnects
+  });
+
+  socket.on("error", (err) => {
+    console.error(`Socket error on ${socket.id}:`, err);
+  });
 });
 
 server.listen(process.env.PORT, () => {
@@ -196,7 +230,7 @@ server.listen(process.env.PORT, () => {
 // Unhandled Promise Rejections
 process.on("unhandledRejection", (err) => {
   console.error(`Error: ${err.message}`);
-  console.error(err.stack);
+  console.error(`Stack: ${err.stack}`);
   console.error("Shutting down the server due to Unhandled Promise Rejection");
 
   server.close(() => {
