@@ -472,11 +472,14 @@ export const userTransactionHistory = catcherrors(async (req, res, next) => {
   // Optionally, you can sort the combined array by date
   combinedHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  if (!combinedHistory.length) {
-    return next(new errorHandler("No transactions found", 404));
+  if (!combinedHistory) {
+    return res.status(200).json({
+      success: true,
+      transactions: [],
+    });
   }
 
-  res.status(200).json({
+ return res.status(200).json({
     success: true,
     transactions: combinedHistory,
   });
