@@ -147,9 +147,10 @@ export const UserGameHistory = catcherrors(async (req,res,next)=>{
         return next(new errorHandler('results not found!', 400) );
     }
 
+    const Gamehistores = gamehistory.reverse();
     res.status(200).json({
         success:true,
-        gamehistory
+        gamehistory:Gamehistores
     })
 
 
