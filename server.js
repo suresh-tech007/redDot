@@ -83,7 +83,7 @@ let gameIDs = {
 };
 
 const startTimers = () => {
-  console.log("Starting timers...");
+   
   Object.keys(timers).forEach((key) => {
     intervals[key] = setInterval(() => {
       if (timers[key] > 0) {
