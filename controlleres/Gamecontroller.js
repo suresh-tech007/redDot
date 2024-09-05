@@ -156,4 +156,27 @@ export const UserGameHistory = catcherrors(async (req,res,next)=>{
 
 })
 
+export const UserBetResult = catcherrors(async (req,res,next)=>{
+
+    const userid =   req.user._id;
+     const gamehistory = await UserBet.find({userid})
+ 
+     if(!gamehistory){
+         res.status(200).json({
+             success:true,
+             
+         })
+     
+         return next(new errorHandler('results not found!', 400) );
+     }
+ 
+     const Gamehistores = gamehistory.reverse();
+     res.status(200).json({
+         success:true,
+         gamehistory:Gamehistores
+     })
+ 
+ 
+ })
+
 

@@ -10,18 +10,19 @@ const sendToken = (user, rememberMe = false, statusCode, res) => {
   const options = {
     expires: new Date(Date.now() + cookieExpireTime),
     httpOnly: true,
-    // secure: process.env.NODE_ENV === 'production',
-    // sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
   };
 
   res
     .status(statusCode)
-    // .cookie("token", token, options)
-    .json({
-      token,
+    .cookie("token", token, options)
+    .json({  
       success: true,
       user,
-      token,
+       
+       
+       
     });
 };
 

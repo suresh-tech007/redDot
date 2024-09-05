@@ -56,7 +56,7 @@ function generateRandomFourDigit() {
 }
 
 export const registerUser = catcherrors(async (req, res, next) => {
-  const { phoneNum,invitationCode, password, confirmPassword } = req.body;
+  const { phoneNum,invitationCode,avatar, password, confirmPassword } = req.body;
    
   
  
@@ -80,7 +80,7 @@ export const registerUser = catcherrors(async (req, res, next) => {
 
   const Username = generateRandomUsername();
   const UID = generateUID();
-  const avatar = `https://avatar.iran.liara.run/public/boy?username=${Username}`;
+   
 
    
  
@@ -194,13 +194,13 @@ const logout = catcherrors(async (req, res, next) => {
   try {
     // Clear the token cookie
 
-    // res.clearCookie("token", {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production",
-    //   sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-    //   path: "/", // Match this to the path where the cookie was set
-    // });
-    localStorage.setItem("token",null)
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      path: "/", // Match this to the path where the cookie was set
+    });
+   
 
     res.status(200).json({
       success: true,
