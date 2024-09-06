@@ -20,6 +20,7 @@ export const checkwinerUser = async (resultdata, bets) => {
 
   // Bets ko iterate karna
   betsCopy[timerType].forEach((bet) => {
+    console.log(betsCopy)
     
     if (Array.isArray(bet.selectednum)) {
       
@@ -51,7 +52,7 @@ export const checkwinerUser = async (resultdata, bets) => {
   });
 
 
-  if (winerUser.length > 0) {
+  if (winerUser.length > 0   ) {
     for (const user of winerUser) {
               
       const { userid, batleamount, selectednumber, uniqueBatleId } = user;
@@ -94,5 +95,15 @@ export const checkwinerUser = async (resultdata, bets) => {
         { new: true }
       );
     }
+
+  }
+  if(winerUser.length==0){
+    await UserBet.updateMany(
+      { GameId: Game_id, betstatus: "Pending" },  
+      {
+          $set: { betstatus: "Lose" },  
+      },
+      { new: true }  
+  );
   }
 };
