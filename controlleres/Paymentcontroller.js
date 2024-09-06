@@ -83,16 +83,13 @@ export const requsetfordeposit = catcherrors(async (req, res, next) => {
   }
 
   let user_name = users.Username;
-  const newuserdepositreq = await Depositreq.findOne({ user });
-  let newUser = false;
-  if (!newuserdepositreq) {
-    newUser = true;
-  } else {
-    newUser = false;
-  }
+  const newUser = true;
+  
+   
+
 
   const depositreqvest = await Depositreq.create({
-    amount: amount + bonusamount,
+    amount: amount ,
     way,
     upi,
     user,
@@ -148,7 +145,7 @@ export const allrequsetfordeposit = catcherrors(async (req, res, next) => {
 // ADD MONEY IS USERS WALLET (ADMIN)
 export const addmoneyiswallet = catcherrors(async (req, res, next) => {
   const { depositrequest_id, status } = req.body;
-
+ 
   // Validate input
   if (!depositrequest_id || !status) {
     return next(new errorHandler("Enter valid values", 400));
@@ -189,7 +186,8 @@ export const addmoneyiswallet = catcherrors(async (req, res, next) => {
   if (status === "Success") {
     const updatedWallet = await Wallet.findOneAndUpdate(
       { user_id: userId },
-      { $inc: { depositBalance: amount + bonusAmount } }, // Add both amount and bonus
+      { $inc: { depositBalance: amount + bonusAmount },
+      newUser :false }, // Add both amount and bonus
       { new: true }
     );
 
@@ -205,13 +203,22 @@ export const addmoneyiswallet = catcherrors(async (req, res, next) => {
 
       const inviterWallet = await Wallet.findOneAndUpdate(
         { user_id: inviterId },
-        { $inc: { depositBalance: inviterBonusAmount } },
+        { $inc: { depositBalance: inviterBonusAmount }
+       },
         { new: true }
       );
 
       if (!inviterWallet) {
         return next(new errorHandler("Failed to update inviter's wallet", 500));
       }
+    }
+    const depositStatus = await Depositreq.findOneAndUpdate(
+      { _id: depositrequest_id },
+      { status },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    if (!depositStatus) {
+      return next(new errorHandler("Failed to update status", 500));
     }
 
     if (!updatedWallet) {

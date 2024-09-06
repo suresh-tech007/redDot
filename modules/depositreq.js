@@ -36,7 +36,7 @@ const DipositreqvestSchema = new mongoose.Schema(
     status:{
       type: String,
       required: true,
-      default:"painding"
+      default:"pending"
 
     },
     newUser:{
