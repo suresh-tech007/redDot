@@ -26,11 +26,11 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(fileUpload());
 app.use(cors({
-    origin: process.env.FRONTED_URL, // Your frontend URL
+    origin: process.env.FRONTED_URL || "http://localhost:5173" , // Your frontend URL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
-}));
- 
+})); 
+    
 
 app.use("/api/v1", userRoute);
 app.use("/api/v1", PaymentRouter);
