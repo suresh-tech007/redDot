@@ -592,41 +592,53 @@ export const bonusController = catcherrors(async (req, res, next) => {
 });
 
 export const claimbonus = catcherrors(async (req, res, next) => {
-  const { amount, invitedUsersdeposit, totalinvitedUsers, rewardamount } =
+  const { amount,invitedUsersDeposit, totalInvitedUsers, rewardAmount } =
     req.body;
-  console.log(amount, invitedUsersdeposit, totalinvitedUsers, rewardamount);
+  
 
-  if (!amount || !invitedUsersdeposit || !totalinvitedUsers || !rewardamount) {
+  if (!amount || !invitedUsersDeposit || !totalInvitedUsers || !rewardAmount) {
     return next(new errorHandler("Some error occurred  ", 400));
   }
 
   const user = req.user;
   const referCode = user.referCode;
+  let invitedUserdepositrequeset = [];
 
   // Find all users who used this user's refer code to register
   const invitedUsers = await User.find({ invitationCode: referCode });
   if (!invitedUsers) {
     return next(new errorHandler("invitedUsers not found  ", 400));
   }
-
-  for (let i = 0; i <= totalinvitedUsers; i++) {
+console.log(invitedUsers)
+  for (let i = 0; i <= invitedUsers.length; i++) {
     const depositrequest = await Depositreq.findOne({
       status: "Success",
       user: invitedUsers[i]._id,
       newUser: true,
       amount: amount,
     });
+     
     if (depositrequest) {
-      depositrequest.newUser = false;
-      const saved = await depositrequest.save();
-      if (!saved) {
-        return next(new errorHandler("Some error occurred ", 400));
-      }
+      invitedUserdepositrequeset.push(depositrequest)
     }
   }
+  for (let index = 0; index <= totalInvitedUsers; index++) {
+    const depositrequest = await Depositreq.findOne({
+      status: "Success",
+      user: invitedUserdepositrequeset[i].user,
+      newUser: true,
+      amount: amount,
+    }); 
+    depositrequest.newUser = false;
+    const saved = await depositrequest.save();
+    if (!saved) {
+      return next(new errorHandler("Some error occurred ", 400));
+    }
+    
+  }
   const updateUser = await User.findOneAndUpdate(
-    { _id: user_id },
-    { $inc: { amount: rewardamount } },
+    { _id: user._id },
+    { $inc: { amount: rewardAmount } },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
