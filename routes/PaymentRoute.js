@@ -8,10 +8,11 @@ import {
   alluserrequsetfordeposit,
   AlluserswithdrawRequest,
   bonusController,
+  claimbonus,
   getbankdetails,
   getUpiDetails,
   newUserdepositrequest,
-  referUserdepositDetails,
+  // referUserdepositDetails,
   requsetfordeposit,
   updateWithdrawrequest,
   Upifordeposit,
@@ -27,8 +28,9 @@ const router = express.Router();
 router.post("/deposit", isAuthenicatedUser, requsetfordeposit);
 router.get("/checknewuserdepositreq", isAuthenicatedUser, newUserdepositrequest);
 router.get("/depositHistory", isAuthenicatedUser, alluserrequsetfordeposit);
+router.get("/admin/allrequsetfordeposit", isAuthenicatedUser, allrequsetfordeposit);
 router.get("/depositbonusforrefers", isAuthenicatedUser, bonusController);
-router.get("/referUserDepositDetails", isAuthenicatedUser, referUserdepositDetails);
+router.put("/claimbonus", isAuthenicatedUser, claimbonus);
 // FOR ADMIN
 router.get("/alldepositrequests", isAuthenicatedUser,authorizeRoles("admin"), allrequsetfordeposit);
 

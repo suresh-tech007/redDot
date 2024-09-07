@@ -12,7 +12,6 @@ import { InvitedUserDepositdetails } from "../modules/InvitedUserDepositdetails.
 export const Upifordeposit = catcherrors(async (req, res, next) => {
   const { upiId, walletId } = req.body;
   const user = req.user;
-   
 
   if (user.role !== "admin") {
     return next(new errorHandler("Unauthorized", 405));
@@ -36,7 +35,6 @@ export const Upifordeposit = catcherrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "UPI ID updated/created successfully",
-    
   });
 });
 
@@ -52,8 +50,8 @@ export const getUpiDetails = catcherrors(async (req, res, next) => {
   // Send the UPI details to the frontend
   res.status(200).json({
     success: true,
-   upiId: UpiDetails.upiId,
-    walletId :UpiDetails.walletId,
+    upiId: UpiDetails.upiId,
+    walletId: UpiDetails.walletId,
   });
 });
 export const newUserdepositrequest = catcherrors(async (req, res, next) => {
@@ -81,15 +79,14 @@ export const requsetfordeposit = catcherrors(async (req, res, next) => {
   if (!users) {
     return next(new errorHandler("user not found ", 400));
   }
-
+  const newUserreq = await Depositreq.findOne({ user });
   let user_name = users.Username;
-  const newUser = true;
-  
-   
-
-
+  let newUser = false;
+  if (!newUserreq) {
+    newUser = true;
+  }
   const depositreqvest = await Depositreq.create({
-    amount: amount ,
+    amount: amount,
     way,
     upi,
     user,
@@ -110,13 +107,12 @@ export const requsetfordeposit = catcherrors(async (req, res, next) => {
   });
 });
 
-// ALL USER REQUESTS FOR DEPOSIT -->
+//  USER  REQUESTS FOR DEPOSIT -->
 export const alluserrequsetfordeposit = catcherrors(async (req, res, next) => {
   const user_id = req.user._id;
   if (!user_id) {
     return next(new errorHandler("Enter valid values ", 400));
   }
-
   const deposithistores = await Depositreq.find({ user: user_id });
   const deposithistory = deposithistores.reverse();
   if (!deposithistory) {
@@ -131,21 +127,21 @@ export const alluserrequsetfordeposit = catcherrors(async (req, res, next) => {
 
 // ALL REQUESTS FOR DEPOSITS BY USERS (ADMIN)
 export const allrequsetfordeposit = catcherrors(async (req, res, next) => {
-  const deposithistory = await Depositreq.find();
-  if (!deposithistory) {
+  const alldepositrequests = await Depositreq.find();
+  if (!alldepositrequests) {
     return next(new errorHandler("Deposit Transactoin not found ", 400));
   }
 
   res.status(200).json({
     success: true,
-    deposithistory,
+    alldepositrequests,
   });
 });
 
 // ADD MONEY IS USERS WALLET (ADMIN)
 export const addmoneyiswallet = catcherrors(async (req, res, next) => {
   const { depositrequest_id, status } = req.body;
- 
+
   // Validate input
   if (!depositrequest_id || !status) {
     return next(new errorHandler("Enter valid values", 400));
@@ -162,7 +158,7 @@ export const addmoneyiswallet = catcherrors(async (req, res, next) => {
   let bonusAmount = 0;
 
   // Calculate bonus amount for new users
-  if (!depositRequest.newUser) {
+  if (depositRequest.newUser) {
     if (amount === 200) {
       bonusAmount = 10;
     } else if (amount === 500) {
@@ -186,8 +182,7 @@ export const addmoneyiswallet = catcherrors(async (req, res, next) => {
   if (status === "Success") {
     const updatedWallet = await Wallet.findOneAndUpdate(
       { user_id: userId },
-      { $inc: { depositBalance: amount + bonusAmount },
-      newUser :false }, // Add both amount and bonus
+      { $inc: { depositBalance: amount + bonusAmount } }, // Add both amount and bonus
       { new: true }
     );
 
@@ -199,12 +194,11 @@ export const addmoneyiswallet = catcherrors(async (req, res, next) => {
 
     if (invitationCodeUser) {
       const inviterId = invitationCodeUser._id;
-      const inviterBonusAmount = (amount / 100) * 10;
+      const inviterBonusAmount = (amount / 100) * 5;
 
       const inviterWallet = await Wallet.findOneAndUpdate(
         { user_id: inviterId },
-        { $inc: { depositBalance: inviterBonusAmount }
-       },
+        { $inc: { depositBalance: inviterBonusAmount } },
         { new: true }
       );
 
@@ -486,7 +480,7 @@ export const userTransactionHistory = catcherrors(async (req, res, next) => {
     });
   }
 
- return res.status(200).json({
+  return res.status(200).json({
     success: true,
     transactions: combinedHistory,
   });
@@ -549,70 +543,99 @@ export const bonusController = catcherrors(async (req, res, next) => {
   // Find all users who used this user's refer code to register
   const invitedUsers = await User.find({ invitationCode: referCode });
 
-  if (invitedUsers.length === 0) {
+  if (invitedUsers.length <= 0) {
     return res.status(200).json({
       success: true,
     });
   }
-
-  // Initialize variables to track the number of users who made deposits and total deposit amount
   let depositCountfor200 = 0;
   let depositCountfor500 = 0;
+  let invitedUserdetails = [];
   let invatedUser = invitedUsers.length;
 
-  // Array to store detailed deposit information for each invited user
-
-  // Loop through each invited user to check if they made a deposit
   for (const invitedUser of invitedUsers) {
-    const deposits = await Depositreq.find({
+    const depositrequest = await Depositreq.findOne({
+      status: "Success",
       user: invitedUser._id,
-      status: "Success", // Assuming status "successful" indicates a successful deposit
+      // newUser: true,
     });
 
-    if (deposits.length === 1) {
-      deposits.forEach(async (deposit) => {
-        if (deposit.amount === 200) {
-          depositCountfor200++;
-          await InvitedUserDepositdetails.create({
-            invitationUser: user._id,
-            userId: deposit.user,
-            username: deposit.user_name,
-            amount: deposit.amount,
-          });
-        } else if (deposit.amount === 500) {
-          depositCountfor500++;
-          await InvitedUserDepositdetails.create({
-            invitationUser: user._id,
-            userId: deposit.user,
-            username: deposit.user_name,
-            amount: deposit.amount,
-          });
-        }
+    if (depositrequest && depositrequest.amount === 200 && depositrequest.newUser === true ) {
+      invitedUserdetails.push({
+        amount: depositrequest.amount,
+        invitedUserId: invitedUser._id,
+        invitedUsername: invitedUser.Username,
+      });
+      depositCountfor200++;
+    } else if (depositrequest && depositrequest.amount === 500 && depositrequest.newUser === true) {
+      invitedUserdetails.push({
+        amount: depositrequest.amount,
+        invitedUserId: invitedUser._id,
+        invitedUsername: invitedUser.Username,
+      });
+      depositCountfor500++;
+    } else {
+      invitedUserdetails.push({
+        amount: depositrequest && depositrequest.amount || 0,
+        invitedUserId: invitedUser._id,
+        invitedUsername: invitedUser.Username,
       });
     }
   }
 
-  const depositDetails = await InvitedUserDepositdetails.find({
-    invitationUser: user._id,
-  });
-
   return res.status(200).json({
-    success: true,
     depositCountfor200,
     depositCountfor500,
-    depositDetails,
+    invitedUserdetails,
     totalInvitedUsers: invatedUser,
   });
 });
 
-export const referUserdepositDetails = catcherrors(async (req, res, next) => {
-  const user = req.user;
+export const claimbonus = catcherrors(async (req, res, next) => {
+  const { amount, invitedUsersdeposit, totalinvitedUsers, rewardamount } =
+    req.body;
+  console.log(amount, invitedUsersdeposit, totalinvitedUsers, rewardamount);
 
-  const Userdepositdetails = await InvitedUserDepositdetails.find({
-    invitationUser: user._id,
-  });
-  return res.status(200).json({
+  if (!amount || !invitedUsersdeposit || !totalinvitedUsers || !rewardamount) {
+    return next(new errorHandler("Some error occurred  ", 400));
+  }
+
+  const user = req.user;
+  const referCode = user.referCode;
+
+  // Find all users who used this user's refer code to register
+  const invitedUsers = await User.find({ invitationCode: referCode });
+  if (!invitedUsers) {
+    return next(new errorHandler("invitedUsers not found  ", 400));
+  }
+
+  for (let i = 0; i <= totalinvitedUsers; i++) {
+    const depositrequest = await Depositreq.findOne({
+      status: "Success",
+      user: invitedUsers[i]._id,
+      newUser: true,
+      amount: amount,
+    });
+    if (depositrequest) {
+      depositrequest.newUser = false;
+      const saved = await depositrequest.save();
+      if (!saved) {
+        return next(new errorHandler("Some error occurred ", 400));
+      }
+    }
+  }
+  const updateUser = await User.findOneAndUpdate(
+    { _id: user_id },
+    { $inc: { amount: rewardamount } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  if (!updateUser) {
+    return next(new errorHandler("user not found  ", 400));
+  }
+
+  res.status(200).json({
     success: true,
-    Userdepositdetails,
+    message: "reward added successfully updated",
   });
 });

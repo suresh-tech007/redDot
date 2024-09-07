@@ -19,6 +19,10 @@ const Deposutdetails = new mongoose.Schema({
     amount: {
         type: Number,
         required:true
+    },
+    claimed:{
+        type:Boolean,
+        default:false,
     }
     
 });

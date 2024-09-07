@@ -120,6 +120,11 @@ export const registerUser = catcherrors(async (req, res, next) => {
       newUser:user._id,
       BonusAmount
     })
+     
+    // if (!invitedUserdepos) {
+    //   new errorHandler("invivateBounes does  not found !", 400)
+    
+    // }
     if (!invivateBounes) {
       new errorHandler("invivateBounes does  not found !", 400)
     
