@@ -610,22 +610,24 @@ export const claimbonus = catcherrors(async (req, res, next) => {
     return next(new errorHandler("invitedUsers not found  ", 400));
   }
  
-  for (let i = 0; i <= invitedUsers.length; i++) {
+  for (let i = 0; i <= invitedUsers.length-1; i++) {
+     
     const depositrequest = await Depositreq.findOne({
       status: "Success",
       user: invitedUsers[i]._id,
       newUser: true,
       amount: amount,
     });
-     
+    //  console.log(depositrequest)
     if (depositrequest) {
       invitedUserdepositrequeset.push(depositrequest)
     }
   }
-  for (let index = 0; index <= totalInvitedUsers; index++) {
+ 
+  for (let index = 0; index < totalInvitedUsers; index++) {
     const depositrequest = await Depositreq.findOne({
       status: "Success",
-      user: invitedUserdepositrequeset[i].user,
+      user: invitedUserdepositrequeset[index].user,
       newUser: true,
       amount: amount,
     }); 
@@ -636,6 +638,7 @@ export const claimbonus = catcherrors(async (req, res, next) => {
     }
     
   }
+   
   const updateUser = await User.findOneAndUpdate(
     { _id: user._id },
     { $inc: { amount: rewardAmount } },

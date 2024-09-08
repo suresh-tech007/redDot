@@ -113,7 +113,7 @@ export const registerUser = catcherrors(async (req, res, next) => {
     
     }
 
-    const BonusAmount = 10
+    const BonusAmount = 5;
 
     const invivateBounes = await InviteBonus.create({
       user_id:user_id,
@@ -212,7 +212,7 @@ const logout = catcherrors(async (req, res, next) => {
       message: "Logout successfully",
     });
   } catch (error) {
-    next(error);
+    return next(new errorHandler("Some error accurd", 401));
   }
 });
 
