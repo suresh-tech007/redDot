@@ -609,7 +609,7 @@ export const claimbonus = catcherrors(async (req, res, next) => {
   if (!invitedUsers) {
     return next(new errorHandler("invitedUsers not found  ", 400));
   }
-console.log(invitedUsers)
+ 
   for (let i = 0; i <= invitedUsers.length; i++) {
     const depositrequest = await Depositreq.findOne({
       status: "Success",

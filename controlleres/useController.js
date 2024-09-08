@@ -201,8 +201,8 @@ const logout = catcherrors(async (req, res, next) => {
 
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      secure: process.env.NODE_ENV === "PRODUCTION",
+      sameSite: process.env.NODE_ENV === "PRODUCTION" ? "None" : "Lax",
       path: "/", // Match this to the path where the cookie was set
     });
    
