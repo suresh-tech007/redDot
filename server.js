@@ -56,9 +56,10 @@ const io = new Server(server, {
 // setInterval(logResourceUsage, 30000); // Log every 30 seconds
 
 
-server.use("/",(req,res)=>{
-  res.json({message:"all ok "});
-})
+app.get("/", (req, res) => {
+  res.json({ message: "All ok" });
+});
+
 // Game logic
 const timers = {
   "1Min": 60,
