@@ -1,8 +1,10 @@
-## Project 1: Real-Time Betting System
+##  Real-Time Betting System
 
 ### Overview
 This project is a real-time betting system built using React for the frontend, Node.js with Socket.IO for real-time communication, and MongoDB for data management. Users can place bets, and results are calculated and broadcast to all users simultaneously.
 
+## 🚀 Live Demo
+Check out the live demo of the project here: [Live Demo]( https://reddotreal.netlify.app/)
 ---
 
 ### Features
