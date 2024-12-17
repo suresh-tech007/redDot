@@ -117,6 +117,7 @@ project/
 ### Notes
 - Ensure the database is connected before running the project.
 - Socket.IO manages all real-time updates.
+- **Backend code is private and not publicly available. API documentation is provided for integration with the frontend.**
 
 ---
 
@@ -249,6 +250,7 @@ This project implements a referral system where users can invite friends and rec
 ### Notes
 - Ensure inviter and invitee relationships are stored correctly in the database.
 - Referral codes are case-sensitive.
+- **Backend code is private and not publicly available. API documentation is provided for integration with the frontend.**
 
 ---
 
