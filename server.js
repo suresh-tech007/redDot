@@ -28,7 +28,8 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTED_URL || "http://localhost:5173",
+    // origin:   "http://localhost:5173",
+    origin:   "https://reddotreal.netlify.app",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -56,9 +57,7 @@ const io = new Server(server, {
 // setInterval(logResourceUsage, 30000); // Log every 30 seconds
 
 
-app.get("/", (req, res) => {
-  res.json({ message: "All ok" });
-});
+ 
 
 // Game logic
 const timers = {

@@ -8,8 +8,11 @@ const sendToken = (user, rememberMe = false, statusCode, res) => {
 
   // options for cookie
   const options = {
+
     expires: new Date(Date.now() + cookieExpireTime),
     httpOnly: true,
+    domain: 'reddot-1geh.onrender.com',
+    path: '/',
     secure: process.env.NODE_ENV === 'PRODUCTION',
     sameSite: process.env.NODE_ENV === 'PRODUCTION' ? 'None' : 'Lax'
   };
