@@ -12,8 +12,6 @@ const sendToken = (user, rememberMe = false, statusCode, res) => {
     httpOnly: true, // Prevent client-side access to the cookie
     secure: process.env.NODE_ENV === 'PRODUCTION', // Use secure cookies in production
     sameSite: process.env.NODE_ENV === 'PRODUCTION' ? 'None' : 'Lax', // SameSite policy
-    path: '/', // Cookie available on all routes
-    domain: process.env.NODE_ENV === 'PRODUCTION' ? 'reddot-1geh.onrender.com' : undefined, // Domain for production
   };
 
   res
