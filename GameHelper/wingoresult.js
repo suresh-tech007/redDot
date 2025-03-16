@@ -20,7 +20,7 @@ export const checkwinerUser = async (resultdata, bets) => {
 
   // Bets ko iterate karna
   betsCopy[timerType].forEach((bet) => {
-    console.log(betsCopy)
+    // console.log(betsCopy)
     
     if (Array.isArray(bet.selectednum)) {
       
@@ -72,7 +72,7 @@ export const checkwinerUser = async (resultdata, bets) => {
       } else {
         withdrawamounts = ((batleamount * 10) / 100) * 90;
       }
-   await UserBet.findOneAndUpdate(
+      await UserBet.findOneAndUpdate(
         { userid, uniqueBatleId },
         {
           betstatus: "Win",

@@ -7,7 +7,11 @@ const router = express.Router()
 
 
 router.post("/userwingobatle",isAuthenicatedUser,userbet)
+
+// GET RESULT 
 router.get("/resulthistory",isAuthenicatedUser,getresults)
+
+// GET USER GAME HISTORY 
 router.get("/userGameHistory",isAuthenicatedUser,UserGameHistory)
 
 

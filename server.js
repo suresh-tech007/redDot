@@ -4,7 +4,6 @@ import app from "./app.js";
 import http from "http";
 import { Server } from "socket.io";
 import { checkwinerUser } from "./GameHelper/wingoresult.js";
-import os from "os";
 
 process.on("uncaughtException", (err) => {
   console.error(`Error: ${err.message}`);
@@ -28,8 +27,8 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    // origin:   "http://localhost:5173",
-    origin:   "https://reddotreal.netlify.app",
+    origin:   "http://localhost:5173",
+    // origin:   "https://reddotreal.netlify.app",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -187,7 +186,7 @@ const findLeastSelectedNumber = (numberCounts) => {
 startTimers();
 
 io.on("connection", (socket) => {
-  console.log(`Client connected: ${socket.id}`);
+  // console.log(`Client connected: ${socket.id}`);
  
   
   socket.emit("gameID", gameIDs);
@@ -220,7 +219,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`Client disconnected: ${socket.id}`); // Track disconnects
+    // console.log(`Client disconnected: ${socket.id}`); // Track disconnects
   });
 
   socket.on("error", (err) => {

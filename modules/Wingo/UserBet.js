@@ -4,7 +4,7 @@ const UserBetSchema = new mongoose.Schema(
   {
     userid: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Assuming you have a User model
+      ref: "User",  
       required: true,
     },
     GameName: {

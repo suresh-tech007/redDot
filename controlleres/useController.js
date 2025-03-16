@@ -159,12 +159,12 @@ export const loginUser = catcherrors(async (req, res, next) => {
   let user;
 
   try {
-    if (phoneNum === null) {
+    if ( !phoneNum  && email != null) {
       user = await User.findOne({ email }).select("+password");
       if (!user) {
         return next(new errorHandler("Invalid phone Number and password", 401));
       }
-    } else if (phoneNum) {
+    } else   {
       const phoneNumPattern = /^[0-9]{10}$/;
       if (!phoneNumPattern.test(phoneNum)) {
         return next(
@@ -180,7 +180,7 @@ export const loginUser = catcherrors(async (req, res, next) => {
       }
     }
   } catch (error) {
-    return next(new errorHandler("Error finding user", 500));
+    return next(new errorHandler(error, 500));
   }
 
   const isPasswordMatched = await user.comparePassword(password);
