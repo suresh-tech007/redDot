@@ -6,6 +6,9 @@ This project is a real-time betting system built using React for the frontend, N
 ## 🚀 Live Demo
 Check out the live demo of the project here: [Live Demo]( https://reddotreal.netlify.app/)
 ---
+For demo : 
+phone Number = 7877503828 ,
+password = sureshku
 
 ### Features
 1. **Real-Time Communication**
